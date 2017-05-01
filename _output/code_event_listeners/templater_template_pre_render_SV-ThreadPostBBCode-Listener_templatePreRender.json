@@ -1,0 +1,9 @@
+{
+    "event_id": "templater_template_pre_render",
+    "execute_order": 10,
+    "callback_class": "\\SV\\ThreadPostBBCode\\Listener",
+    "callback_method": "templatePreRender",
+    "active": true,
+    "hint": "",
+    "description": ""
+}

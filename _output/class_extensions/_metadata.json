@@ -1,0 +1,11 @@
+{
+    "XF-BbCode-ProcessorAction-AnalyzeUsage_SV-ThreadPostBBCode-XF-BbCode-ProcessorAction-AnalyzeUsage.json": {
+        "hash": "0907e51507d7a1848e8425c15f8fb98a"
+    },
+    "XF-Service-Message-Preparer_SV-ThreadPostBBCode-XF-Service-Message-Preparer.json": {
+        "hash": "edf090e30a0f9fc3cc546c837d833226"
+    },
+    "XF-Service-Post-Preparer_SV-ThreadPostBBCode-XF-Service-Post-Preparer.json": {
+        "hash": "13fb748c48dc6e1dfecf64735bf09646"
+    }
+}
