@@ -12,7 +12,7 @@ class Preparer extends XFCP_Preparer
 	protected $linkedThreadIds = [];
 	protected $linkedPostIds = [];
 
-	public function setMessage($message, $format = true)
+	/*public function setMessage($message, $format = true)
 	{
 		$message = parent::setMessage($message, $format);
 
@@ -20,7 +20,7 @@ class Preparer extends XFCP_Preparer
 		$this->linkedPostIds = $this->messagePreparerHack->getLinkedPostIds();
 
 		return $message;
-	}
+	}*/
 
 	protected function getMessagePreparer($format = true)
 	{

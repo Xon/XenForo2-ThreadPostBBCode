@@ -2,13 +2,11 @@
 
 namespace SV\ThreadPostBBCode\XF\BbCode\ProcessorAction;
 
+use SV\ThreadPostBBCode\StaticGlobals;
 use XF\BbCode\ProcessorAction\AnalyzerHooks;
 
 class AnalyzeUsage extends XFCP_AnalyzeUsage
 {
-	protected $linkedThreadIds = [];
-	protected $linkedPostIds = [];
-
 	public function addAnalysisHooks(AnalyzerHooks $hooks)
 	{
 		parent::addAnalysisHooks($hooks);
@@ -19,27 +17,17 @@ class AnalyzeUsage extends XFCP_AnalyzeUsage
 
 	public function logLinkedThreadId(array $tag, array $options, $finalOutput)
 	{
-		if ($tag['option'])
+		if ($tag['option'] && !in_array($tag['option'], StaticGlobals::$linkedThreadIds))
 		{
-			$this->linkedThreadIds[] = $tag['option'];
+			StaticGlobals::$linkedThreadIds[] = $tag['option'];
 		}
 	}
 
 	public function logLinkedPostId(array $tag, array $options, $finalOutput)
 	{
-		if ($tag['option'])
+		if ($tag['option'] && !in_array($tag['option'], StaticGlobals::$linkedPostIds))
 		{
-			$this->linkedPostIds[] = $tag['option'];
+			StaticGlobals::$linkedPostIds[] = $tag['option'];
 		}
-	}
-
-	public function getLinkedThreadIds()
-	{
-		return array_unique($this->linkedThreadIds);
-	}
-
-	public function getLinkedPostIds()
-	{
-		return array_unique($this->linkedPostIds);
 	}
 }
