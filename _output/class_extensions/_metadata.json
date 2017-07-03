@@ -4,11 +4,5 @@
     },
     "XF-BbCode-RuleSet_SV-ThreadPostBBCode-XF-BbCode-RuleSet.json": {
         "hash": "2f906b4f0a45144e2627b06b700d96e6"
-    },
-    "XF-Service-Message-Preparer_SV-ThreadPostBBCode-XF-Service-Message-Preparer.json": {
-        "hash": "6b244e14e00babdb7bc01fb4d0286b15"
-    },
-    "XF-Service-Post-Preparer_SV-ThreadPostBBCode-XF-Service-Post-Preparer.json": {
-        "hash": "6ba9c2190a02a8e3865f89cb7dfb09f7"
     }
 }
