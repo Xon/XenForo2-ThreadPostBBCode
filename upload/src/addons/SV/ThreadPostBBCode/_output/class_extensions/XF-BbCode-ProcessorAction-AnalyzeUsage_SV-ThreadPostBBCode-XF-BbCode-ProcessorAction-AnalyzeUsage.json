@@ -1,6 +1,0 @@
-{
-    "from_class": "XF\\BbCode\\ProcessorAction\\AnalyzeUsage",
-    "to_class": "SV\\ThreadPostBBCode\\XF\\BbCode\\ProcessorAction\\AnalyzeUsage",
-    "execute_order": 10,
-    "active": true
-}
