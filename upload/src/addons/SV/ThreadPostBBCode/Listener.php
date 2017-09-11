@@ -7,100 +7,140 @@ use XF\Entity\Thread;
 
 class Listener
 {
-	protected static $postCache = null;
-	protected static $threadCache = null;
+    protected static $loadedPostIds   = [];
+    protected static $loadedThreadIds = [];
+    protected static $loadedForumIds  = [];
 
-	protected static function loadData()
-	{
-		$threadIds = StaticGlobals::$threadIds;
-		$postIds = StaticGlobals::$postIds;
+    /**
+     * @param string $shortname
+     * @param array $ids
+     */
+    protected static function loadEntities($shortname, array $ids)
+    {
+        $em = \XF::em();
+        $toLoad = [];
+        foreach ($ids as $threadId => $null)
+        {
+            if ($em->findCached($shortname, $threadId))
+            {
+                $toLoad[] = $threadId;
+            }
+        }
+        if ($toLoad)
+        {
+            \XF::finder($shortname)->whereIds($toLoad)->fetch();
+        }
+    }
 
-		self::$threadCache = \XF::finder('XF:Thread')->with('Forum')->whereIds($threadIds)->fetch();
-		self::$postCache = \XF::finder('XF:Post')->with('Thread')->with('Thread.Forum')->whereIds($postIds)->fetch();
-	}
 
-	public static function getPosts()
-	{
-		if (self::$postCache === null)
-		{
-			self::loadData();
-		}
+    protected static function loadData()
+    {
+        $em = \XF::em();
+        $toLoad = [];
+        foreach (Globals::$postIds as $id => $null)
+        {
+            /** @var \XF\Entity\Post $post */
+            if ($post = $em->findCached('XF:Post', $id))
+            {
+                Globals::$threadIds[$post->thread_id] = true;
+            }
+            else
+            {
+                $toLoad[] = $id;
+            }
+        }
+        Globals::$postIds = [];
+        if ($toLoad)
+        {
+            /** @var \XF\Entity\Post[] $entities */
+            $entities = \XF::finder('XF:Post')->whereIds($toLoad)->fetch();
+            foreach ($entities as $entity)
+            {
+                Globals::$threadIds[$entity->thread_id] = true;
+            }
+        }
 
-		return self::$postCache;
-	}
+        $forumIds = [];
 
-	public static function getThreads()
-	{
-		if (self::$threadCache === null)
-		{
-			self::loadData();
-		}
+        $em = \XF::em();
+        $toLoad = [];
+        foreach (Globals::$threadIds as $id => $null)
+        {
+            /** @var \XF\Entity\Thread $thread */
+            if ($thread = $em->findCached('XF:Thread', $id))
+            {
+                $forumIds[$thread->node_id] = true;
+            }
+            else
+            {
+                $toLoad[] = $id;
+            }
+        }
+        Globals::$threadIds = [];
+        if ($toLoad)
+        {
+            /** @var \XF\Entity\Thread[] $entities */
+            $entities = \XF::finder('XF:Thread')->whereIds($toLoad)->fetch();
+            foreach ($entities as $entity)
+            {
+                $forumIds[$entity->node_id] = true;
+            }
+        }
 
-		return self::$threadCache;
-	}
 
-	public static function bbcodeThread($tagChildren, $tagOption, $tag, array $options, \XF\BbCode\Renderer\AbstractRenderer $renderer)
-	{
-		$threadId = $tagOption;
+        $em = \XF::em();
+        $toLoad = [];
+        foreach ($forumIds as $id => $null)
+        {
+            /** @var \XF\Entity\Forum $forum */
+            if (!$em->findCached('XF:Forum', $id))
+            {
+                $toLoad[] = $id;
+            }
+        }
+        if ($toLoad)
+        {
+            \XF::finder('XF:Forum')->whereIds($toLoad)->fetch();
+        }
+    }
 
-		$cachedThreads = self::getThreads();
+    public static function bbcodeThread($tagChildren, $tagOption, $tag, array $options, \XF\BbCode\Renderer\AbstractRenderer $renderer)
+    {
+        self::loadData();
 
-		if (isset($cachedThreads[$threadId]))
-		{
-			$thread = $cachedThreads[$threadId];
-		}
-		else
-		{
-			/** @var \XF\Entity\Thread $thread */
-			$thread = \XF::finder('XF:Thread')->with('Forum')->whereId($threadId)->fetchOne();
-			self::$threadCache[$thread->thread_id] = $thread;
-		}
+        $threadId = $tagOption;
+        /** @var \XF\Entity\Thread $thread */
+        $thread = \XF::em()->findCached('XF:Thread', $threadId);
 
-		if (!$thread || !$thread->canView())
-		{
-			return $renderer->renderSubTree($tagChildren, $options);
-		}
+        if (!$thread || !$thread->canView())
+        {
+            $link = \XF::app()->router()->buildLink('threads', ['thread_id' => $threadId]);
+        }
+        else
+        {
+            $link = \XF::app()->router()->buildLink('threads', $thread);
+        }
 
-		$link = \XF::app()->router()->buildLink('threads', $thread);
+        return '<a href="' . $link . '" class="internalLink">' . $renderer->renderSubTree($tagChildren, $options) . '</a>';
+    }
 
-		return '<a href="' . $link . '" class="internalLink">' . $renderer->renderSubTree($tagChildren, $options) . '</a>';
-	}
+    public static function bbcodePost($tagChildren, $tagOption, $tag, array $options, \XF\BbCode\Renderer\AbstractRenderer $renderer)
+    {
+        self::loadData();
 
-	public static function bbcodePost($tagChildren, $tagOption, $tag, array $options, \XF\BbCode\Renderer\AbstractRenderer $renderer)
-	{
-		$postId = $tagOption;
+        $postId = $tagOption;
+        /** @var \XF\Entity\Post $post */
+        $post = \XF::em()->findCached('XF:Post', $postId);
 
-		$cachedPosts = self::getPosts();
+        if (!$post || !$post->canView())
+        {
+            $link = \XF::app()->router()->buildLink('posts', ['post_id' => $postId]);
+        }
+        else
+        {
+            $link = \XF::app()->router()->buildLink('threads/post', $post->Thread, ['post_id' => $post->post_id]);
+        }
 
-		if (isset($cachedPosts[$postId]))
-		{
-			$post = $cachedPosts[$postId];
-		}
-		else
-		{
-			/** @var \XF\Entity\Post $post */
-			$post = \XF::finder('XF:Post')->with('Thread')->with('Thread.Forum')->whereId($postId)->fetchOne();
-			self::$postCache[$post->post_id] = $post;
-		}
-
-		if (!$post || !$post->canView())
-		{
-			return $renderer->renderSubTree($tagChildren, $options);
-		}
-
-		$link = \XF::app()->router()->buildLink('posts', $post);
-
-		return '<a href="' . $link . '" class="internalLink">' . $renderer->renderSubTree($tagChildren, $options) . '</a>';
-	}
-
-	public static function positionToPage($position)
-	{
-		$messagesPerPage = null;
-		if ($messagesPerPage == null)
-		{
-			$messagesPerPage = \XF::options()->messagesPerPage;
-		}
-
-		return floor($position / $messagesPerPage) + 1;
-	}
+        return '<a href="' . $link . '" class="internalLink">' . $renderer->renderSubTree($tagChildren, $options) . '</a>';
+    }
 }
