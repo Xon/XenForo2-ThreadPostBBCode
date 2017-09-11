@@ -11,28 +11,6 @@ class Listener
     protected static $loadedThreadIds = [];
     protected static $loadedForumIds  = [];
 
-    /**
-     * @param string $shortname
-     * @param array $ids
-     */
-    protected static function loadEntities($shortname, array $ids)
-    {
-        $em = \XF::em();
-        $toLoad = [];
-        foreach ($ids as $threadId => $null)
-        {
-            if ($em->findCached($shortname, $threadId))
-            {
-                $toLoad[] = $threadId;
-            }
-        }
-        if ($toLoad)
-        {
-            \XF::finder($shortname)->whereIds($toLoad)->fetch();
-        }
-    }
-
-
     protected static function loadData()
     {
         $em = \XF::em();

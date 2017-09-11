@@ -15,10 +15,16 @@ class RuleSet extends XFCP_RuleSet
             switch ($tag)
             {
                 case 'thread':
-                    Globals::$threadIds[$option] = true;
+                    if ($option = intval($option))
+                    {
+                        Globals::$threadIds[$option] = true;
+                    }
                     break;
                 case 'post':
-                    Globals::$postIds[$option] = true;
+                    if ($option = intval($option))
+                    {
+                        Globals::$postIds[$option] = true;
+                    }
                     break;
             }
         }
