@@ -1,14 +1,5 @@
-# Thread & Post BB Code
+# ThreadPostBBCode
 
-_This is for development purposes._
+Bbcodes to generate Friendly URLs to theads or posts from the ID respecting permissions to view details about the target.
 
-#### Requirements
-
- - XenForo 2.0+
- 
-#### Development Installation Instructions
-
- 1. Clone the contents of this repo to the `src/addons/SV/ThreadPostBBCode` directory
- 2. Install the addon via the command line:
-    `php cmd.php xf:addon-install SV/ThreadPostBBCode`
- 3. Import development data
+The primary use in XF1.x was to generate stable URL's for linking in the face of moderation. This add-on is to allow migration of existing bbcode usage to XF2.x
