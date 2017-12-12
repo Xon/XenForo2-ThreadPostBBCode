@@ -1,4 +1,5 @@
 addon-*.zip
+_data
 _releases
 hashes.json
 /.idea/
