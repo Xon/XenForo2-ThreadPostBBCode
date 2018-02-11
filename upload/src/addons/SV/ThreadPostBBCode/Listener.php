@@ -2,17 +2,15 @@
 
 namespace SV\ThreadPostBBCode;
 
-use XF\Entity\Post;
-use XF\Entity\Thread;
+use XF\BbCode\Renderer\AbstractRenderer;
 
 class Listener
 {
-    protected static $loadedPostIds   = [];
-    protected static $loadedThreadIds = [];
-    protected static $loadedForumIds  = [];
-
     protected static function loadData()
     {
+        \XF::runOnce('bbcodeCleanup', function(){
+            Globals::reset();
+        });
         $em = \XF::em();
         $toLoad = [];
         foreach (Globals::$postIds as $id => $null)
@@ -82,7 +80,7 @@ class Listener
         }
     }
 
-    public static function bbcodeThread($tagChildren, $tagOption, $tag, array $options, \XF\BbCode\Renderer\AbstractRenderer $renderer)
+    public static function bbcodeThread(/** @noinspection PhpUnusedParameterInspection */ $tagChildren, $tagOption, $tag, array $options, AbstractRenderer $renderer)
     {
         self::loadData();
 
@@ -102,7 +100,7 @@ class Listener
         return '<a href="' . $link . '" class="internalLink">' . $renderer->renderSubTree($tagChildren, $options) . '</a>';
     }
 
-    public static function bbcodePost($tagChildren, $tagOption, $tag, array $options, \XF\BbCode\Renderer\AbstractRenderer $renderer)
+    public static function bbcodePost(/** @noinspection PhpUnusedParameterInspection */ $tagChildren, $tagOption, $tag, array $options, AbstractRenderer $renderer)
     {
         self::loadData();
 

@@ -21,6 +21,15 @@ class Globals
 	public static $postIds = [];
 
     /**
+     * php-pm support, ensure globals are reset and the end of a request
+     */
+	public static function reset()
+    {
+        Globals::$threadIds = [];
+        Globals::$postIds = [];
+    }
+
+    /**
      * Private constructor, use statically.
      */
     private function __construct()
