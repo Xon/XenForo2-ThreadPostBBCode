@@ -19,11 +19,19 @@ class RuleSet extends XFCP_RuleSet
                     {
                         Globals::$threadIds[$option] = true;
                     }
+                    else
+                    {
+                        return false;
+                    }
                     break;
                 case 'post':
                     if ($option = intval($option))
                     {
                         Globals::$postIds[$option] = true;
+                    }
+                    else
+                    {
+                        return false;
                     }
                     break;
             }

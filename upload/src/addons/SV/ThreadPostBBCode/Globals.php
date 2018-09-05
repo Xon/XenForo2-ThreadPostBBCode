@@ -20,6 +20,9 @@ class Globals
 	/** @var bool[]  */
 	public static $postIds = [];
 
+	/** @var \XF\Mvc\Router */
+	public static $router;
+
     /**
      * php-pm support, ensure globals are reset and the end of a request
      */
@@ -27,6 +30,7 @@ class Globals
     {
         Globals::$threadIds = [];
         Globals::$postIds = [];
+        Globals::$router = null;
     }
 
     /**

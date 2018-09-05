@@ -8,7 +8,17 @@ class Listener
 {
     protected static function loadData()
     {
-        \XF::runOnce('bbcodeCleanup', function(){
+        if (Globals::$router === null)
+        {
+            Globals::$router = \XF::app()->router('public');
+        }
+
+        if (!Globals::$threadIds && !Globals::$postIds)
+        {
+            return;
+        }
+
+        \XF::runOnce('bbcodeCleanup', function () {
             Globals::reset();
         });
         $em = \XF::em();
@@ -80,43 +90,74 @@ class Listener
         }
     }
 
-    public static function bbcodeThread(/** @noinspection PhpUnusedParameterInspection */ $tagChildren, $tagOption, $tag, array $options, AbstractRenderer $renderer)
+    public static function renderBbCode($tagChildren, $tagOption, $tag, array $options, AbstractRenderer $renderer)
     {
         self::loadData();
 
-        $threadId = $tagOption;
-        /** @var \XF\Entity\Thread $thread */
-        $thread = \XF::em()->findCached('XF:Thread', $threadId);
-
-        if (!$thread || !$thread->canView())
+        $id = intval($tagOption);
+        if (!$id)
         {
-            $link = \XF::app()->router()->buildLink('threads', ['thread_id' => $threadId]);
+            return $renderer->renderUnparsedTag($tag, $options);
+        }
+
+        $tagName = $tag['tag'];
+        if ($tagName === 'thread')
+        {
+            /** @var \XF\Entity\Thread $thread */
+            $thread = \XF::em()->findCached('XF:Thread', $id);
+            if (!$thread || !$thread->canView())
+            {
+                $link = Globals::$router->buildLink('threads', ['thread_id' => $id]);
+            }
+            else
+            {
+                $link = Globals::$router->buildLink('threads', $thread);
+            }
+        }
+        else if ($tagName === 'post')
+        {
+            /** @var \XF\Entity\Post $post */
+            $post = \XF::em()->findCached('XF:Post', $id);
+            if (!$post || !$post->canView())
+            {
+                $link = Globals::$router->buildLink('posts', ['post_id' => $id]);
+            }
+            else
+            {
+                if ($thread = $post->Thread)
+                {
+                    $page = floor($post->position / \XF::options()->messagesPerPage) + 1;
+
+                    $link = Globals::$router->buildLink('threads', $thread, ['page' => $page]) . '#post-' . $post->post_id;
+                }
+                else
+                {
+                    $link = Globals::$router->buildLink('posts', $post);
+                }
+            }
         }
         else
         {
-            $link = \XF::app()->router()->buildLink('threads', $thread);
+            return $renderer->renderUnparsedTag($tag, $options);
         }
 
-        return '<a href="' . $link . '" class="internalLink">' . $renderer->renderSubTree($tagChildren, $options) . '</a>';
-    }
-
-    public static function bbcodePost(/** @noinspection PhpUnusedParameterInspection */ $tagChildren, $tagOption, $tag, array $options, AbstractRenderer $renderer)
-    {
-        self::loadData();
-
-        $postId = $tagOption;
-        /** @var \XF\Entity\Post $post */
-        $post = \XF::em()->findCached('XF:Post', $postId);
-
-        if (!$post || !$post->canView())
+        $children = $renderer->renderSubTree($tagChildren, $options);
+        // using the body as id, so render a full URL to display in the thread instead
+        if (empty($children))
         {
-            $link = \XF::app()->router()->buildLink('posts', ['post_id' => $postId]);
-        }
-        else
-        {
-            $link = \XF::app()->router()->buildLink('threads/post', $post->Thread, ['post_id' => $post->post_id]);
+            $children = $link;
         }
 
-        return '<a href="' . $link . '" class="internalLink">' . $renderer->renderSubTree($tagChildren, $options) . '</a>';
+        if ($renderer instanceof \XF\BbCode\Renderer\SimpleHtml || $renderer instanceof \XF\BbCode\Renderer\EmailHtml)
+        {
+            return '<a href="' . htmlspecialchars($link) . '">' . $children . '</a>';
+        }
+
+        $linkInfo = \XF::app()->stringFormatter()->getLinkClassTarget($link);
+
+        $classAttr = $linkInfo['class'] ? "class=\"$linkInfo[class]\"" : '';
+        $targetAttr = $linkInfo['target'] ? "target=\"$linkInfo[target]\"" : '';
+
+        return '<a href="' . htmlspecialchars($link) . '"' . $targetAttr . $classAttr . '>' . $children . '</a>';
     }
 }
