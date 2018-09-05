@@ -107,11 +107,11 @@ class Listener
             $thread = \XF::em()->findCached('XF:Thread', $id);
             if (!$thread || !$thread->canView())
             {
-                $link = Globals::$router->buildLink('threads', ['thread_id' => $id]);
+                $link = Globals::$router->buildLink('canonical:threads', ['thread_id' => $id]);
             }
             else
             {
-                $link = Globals::$router->buildLink('threads', $thread);
+                $link = Globals::$router->buildLink('canonical:threads', $thread);
             }
         }
         else if ($tagName === 'post')
@@ -120,7 +120,7 @@ class Listener
             $post = \XF::em()->findCached('XF:Post', $id);
             if (!$post || !$post->canView())
             {
-                $link = Globals::$router->buildLink('posts', ['post_id' => $id]);
+                $link = Globals::$router->buildLink('canonical:posts', ['post_id' => $id]);
             }
             else
             {
@@ -128,11 +128,11 @@ class Listener
                 {
                     $page = floor($post->position / \XF::options()->messagesPerPage) + 1;
 
-                    $link = Globals::$router->buildLink('threads', $thread, ['page' => $page]) . '#post-' . $post->post_id;
+                    $link = Globals::$router->buildLink('canonical:threads', $thread, ['page' => $page]) . '#post-' . $post->post_id;
                 }
                 else
                 {
-                    $link = Globals::$router->buildLink('posts', $post);
+                    $link = Globals::$router->buildLink('canonical:posts', $post);
                 }
             }
         }
