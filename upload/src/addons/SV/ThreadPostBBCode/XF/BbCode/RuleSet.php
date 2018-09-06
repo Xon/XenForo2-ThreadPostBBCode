@@ -6,6 +6,14 @@ use SV\ThreadPostBBCode\Globals;
 
 class RuleSet extends XFCP_RuleSet
 {
+    public function __construct($context, $subContext = null, $addDefault = true)
+    {
+        parent::__construct($context, $subContext, $addDefault);
+        \XF::runOnce('bbcodeCleanup', function () {
+            Globals::reset();
+        });
+    }
+
     public function validateTag($tag, $option = null, &$parsingModifiers = [])
     {
         $validTag = parent::validateTag($tag, $option, $parsingModifiers);
