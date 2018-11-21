@@ -14,9 +14,9 @@ class RuleSet extends XFCP_RuleSet
         });
     }
 
-    public function validateTag($tag, $option = null, &$parsingModifiers = [])
+    public function validateTag($tag, $option = null, &$parsingModifiers = [], array $tagStack = array())
     {
-        $validTag = parent::validateTag($tag, $option, $parsingModifiers);
+        $validTag = parent::validateTag($tag, $option, $parsingModifiers, $tagStack);
 
         if ($validTag)
         {
