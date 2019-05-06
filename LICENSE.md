@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2017-2018 Xon
+Copyright (c) 2017-2019 Xon
 Copyright (c) 2018 Simon Hampel
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
