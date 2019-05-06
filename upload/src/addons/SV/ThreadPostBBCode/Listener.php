@@ -3,10 +3,13 @@
 namespace SV\ThreadPostBBCode;
 
 use XF\BbCode\Renderer\AbstractRenderer;
+use XF\Entity\Forum;
+use XF\Entity\Post;
+use XF\Entity\Thread;
 
 class Listener
 {
-    protected static function loadData()
+    protected static function loadData(AbstractRenderer $renderer)
     {
         if (Globals::$router === null)
         {
@@ -21,14 +24,39 @@ class Listener
         \XF::runOnce('bbcodeCleanup', function () {
             Globals::reset();
         });
+
+        if (!isset($renderer->{'svThreadViewCheck'}))
+        {
+            $renderer->{'svThreadViewCheck'} = [];
+        }
+        $threadViewChecks = &$renderer->{'svThreadViewCheck'};
+        if (!isset($renderer->{'svPostViewCheck'}))
+        {
+            $renderer->{'svPostViewCheck'} = [];
+        }
+        $postViewChecks = &$renderer->{'svPostViewCheck'};
+
         $em = \XF::em();
         $toLoad = [];
         foreach (Globals::$postIds as $id => $null)
         {
-            /** @var \XF\Entity\Post $post */
-            if ($post = $em->findCached('XF:Post', $id))
+            /** @var Post $post */
+            $post = $em->findCached('XF:Post', $id);
+            if ($post)
             {
-                Globals::$threadIds[$post->thread_id] = true;
+                $threadId = $post->thread_id;
+                $thread = $post->Thread;
+                Globals::$threadIds[$threadId] = true;
+
+                if (!isset($threadViewChecks[$threadId]))
+                {
+                    $threadViewChecks[$threadId] = $thread && $thread->canView();
+                }
+
+                if (!isset($postViewChecks[$id]))
+                {
+                    $postViewChecks[$id] = !empty($threadViewChecks[$threadId]) && ($post->message_state === 'visible' || $post->canView());
+                }
             }
             else
             {
@@ -38,11 +66,23 @@ class Listener
         Globals::$postIds = [];
         if ($toLoad)
         {
-            /** @var \XF\Entity\Post[] $entities */
+            /** @var Post[] $entities */
             $entities = \XF::finder('XF:Post')->whereIds($toLoad)->fetch();
-            foreach ($entities as $entity)
+            foreach ($entities as $id => $post)
             {
-                Globals::$threadIds[$entity->thread_id] = true;
+                $threadId = $post->thread_id;
+                $thread = $post->Thread;
+                Globals::$threadIds[$threadId] = true;
+
+                if (!isset($threadViewChecks[$threadId]))
+                {
+                    $threadViewChecks[$threadId] = $thread && $thread->canView();
+                }
+
+                if (!isset($postViewChecks[$id]))
+                {
+                    $postViewChecks[$id] = !empty($threadViewChecks[$threadId]) && ($post->message_state === 'visible' || $post->canView());
+                }
             }
         }
 
@@ -52,10 +92,16 @@ class Listener
         $toLoad = [];
         foreach (Globals::$threadIds as $id => $null)
         {
-            /** @var \XF\Entity\Thread $thread */
-            if ($thread = $em->findCached('XF:Thread', $id))
+            /** @var Thread $thread */
+            $thread = $em->findCached('XF:Thread', $id);
+            if ($thread)
             {
                 $forumIds[$thread->node_id] = true;
+
+                if (!isset($threadViewChecks[$id]))
+                {
+                    $threadViewChecks[$id] = $thread && $thread->canView();
+                }
             }
             else
             {
@@ -65,11 +111,15 @@ class Listener
         Globals::$threadIds = [];
         if ($toLoad)
         {
-            /** @var \XF\Entity\Thread[] $entities */
+            /** @var Thread[] $entities */
             $entities = \XF::finder('XF:Thread')->whereIds($toLoad)->fetch();
-            foreach ($entities as $entity)
+            foreach ($entities as $id => $entity)
             {
                 $forumIds[$entity->node_id] = true;
+                if (!isset($threadViewChecks[$id]))
+                {
+                    $threadViewChecks[$id] = $entity && $entity->canView();
+                }
             }
         }
 
@@ -78,7 +128,7 @@ class Listener
         $toLoad = [];
         foreach ($forumIds as $id => $null)
         {
-            /** @var \XF\Entity\Forum $forum */
+            /** @var Forum $forum */
             if (!$em->findCached('XF:Forum', $id))
             {
                 $toLoad[] = $id;
@@ -92,7 +142,7 @@ class Listener
 
     public static function renderBbCode($tagChildren, $tagOption, $tag, array $options, AbstractRenderer $renderer)
     {
-        self::loadData();
+        self::loadData($renderer);
 
         $id = intval($tagOption);
         if (!$id)
@@ -103,36 +153,50 @@ class Listener
         $tagName = $tag['tag'];
         if ($tagName === 'thread')
         {
-            /** @var \XF\Entity\Thread $thread */
-            $thread = \XF::em()->findCached('XF:Thread', $id);
-            if (!$thread || !$thread->canView())
+            if (empty($renderer->{'svThreadViewCheck'}))
             {
                 $link = Globals::$router->buildLink('canonical:threads', ['thread_id' => $id]);
             }
             else
             {
-                $link = Globals::$router->buildLink('canonical:threads', $thread);
+                /** @var Thread $thread */
+                $thread = \XF::em()->findCached('XF:Thread', $id);
+                if (!$thread)
+                {
+                    $link = Globals::$router->buildLink('canonical:threads', ['thread_id' => $id]);
+                }
+                else
+                {
+                    $link = Globals::$router->buildLink('canonical:threads', $thread);
+                }
             }
         }
         else if ($tagName === 'post')
         {
-            /** @var \XF\Entity\Post $post */
-            $post = \XF::em()->findCached('XF:Post', $id);
-            if (!$post || !$post->canView())
+            if (empty($renderer->{'svPostViewCheck'}))
             {
                 $link = Globals::$router->buildLink('canonical:posts', ['post_id' => $id]);
             }
             else
             {
-                if ($thread = $post->Thread)
+                /** @var Post $post */
+                $post = \XF::em()->findCached('XF:Post', $id);
+                if (!$post)
                 {
-                    $page = floor($post->position / \XF::options()->messagesPerPage) + 1;
-
-                    $link = Globals::$router->buildLink('canonical:threads', $thread, ['page' => $page]) . '#post-' . $post->post_id;
+                    $link = Globals::$router->buildLink('canonical:posts', ['post_id' => $id]);
                 }
                 else
                 {
-                    $link = Globals::$router->buildLink('canonical:posts', $post);
+                    if ($thread = $post->Thread)
+                    {
+                        $page = floor($post->position / \XF::options()->messagesPerPage) + 1;
+
+                        $link = Globals::$router->buildLink('canonical:threads', $thread, ['page' => $page]) . '#post-' . $post->post_id;
+                    }
+                    else
+                    {
+                        $link = Globals::$router->buildLink('canonical:posts', $post);
+                    }
                 }
             }
         }

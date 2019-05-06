@@ -16,6 +16,7 @@ class RuleSet extends XFCP_RuleSet
 
     public function validateTag($tag, $option = null, &$parsingModifiers = [], array $tagStack = array())
     {
+        /** @noinspection PhpMethodParametersCountMismatchInspection */
         $validTag = parent::validateTag($tag, $option, $parsingModifiers, $tagStack);
 
         if ($validTag)
@@ -23,7 +24,8 @@ class RuleSet extends XFCP_RuleSet
             switch ($tag)
             {
                 case 'thread':
-                    if ($option = intval($option))
+                    $option = (int)$option;
+                    if ($option)
                     {
                         Globals::$threadIds[$option] = true;
                     }
@@ -33,7 +35,8 @@ class RuleSet extends XFCP_RuleSet
                     }
                     break;
                 case 'post':
-                    if ($option = intval($option))
+                    $option = (int)$option;
+                    if ($option)
                     {
                         Globals::$postIds[$option] = true;
                     }
