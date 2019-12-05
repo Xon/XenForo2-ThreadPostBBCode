@@ -36,6 +36,7 @@ class Listener
         }
         $postViewChecks = &$renderer->{'svPostViewCheck'};
 
+        $postsToCheck = [];
         $em = \XF::em();
         $toLoad = [];
         foreach (Globals::$postIds as $id => $null)
@@ -45,18 +46,8 @@ class Listener
             if ($post)
             {
                 $threadId = $post->thread_id;
-                $thread = $post->Thread;
                 Globals::$threadIds[$threadId] = true;
-
-                if (!isset($threadViewChecks[$threadId]))
-                {
-                    $threadViewChecks[$threadId] = $thread && $thread->canView();
-                }
-
-                if (!isset($postViewChecks[$id]))
-                {
-                    $postViewChecks[$id] = !empty($threadViewChecks[$threadId]) && ($post->message_state === 'visible' || $post->canView());
-                }
+                $postsToCheck[$id] = $post;
             }
             else
             {
@@ -71,18 +62,8 @@ class Listener
             foreach ($entities as $id => $post)
             {
                 $threadId = $post->thread_id;
-                $thread = $post->Thread;
                 Globals::$threadIds[$threadId] = true;
-
-                if (!isset($threadViewChecks[$threadId]))
-                {
-                    $threadViewChecks[$threadId] = $thread && $thread->canView();
-                }
-
-                if (!isset($postViewChecks[$id]))
-                {
-                    $postViewChecks[$id] = !empty($threadViewChecks[$threadId]) && ($post->message_state === 'visible' || $post->canView());
-                }
+                $postsToCheck[$id] = $post;
             }
         }
 
@@ -97,29 +78,24 @@ class Listener
             if ($thread)
             {
                 $forumIds[$thread->node_id] = true;
-
-                if (!isset($threadViewChecks[$id]))
-                {
-                    $threadViewChecks[$id] = $thread && $thread->canView();
-                }
+                $threadsToCheck[$id] = $thread;
             }
             else
             {
                 $toLoad[] = $id;
             }
         }
+
+        $threadsToCheck = [];
         Globals::$threadIds = [];
         if ($toLoad)
         {
             /** @var Thread[] $entities */
             $entities = \XF::finder('XF:Thread')->whereIds($toLoad)->fetch();
-            foreach ($entities as $id => $entity)
+            foreach ($entities as $id => $thread)
             {
-                $forumIds[$entity->node_id] = true;
-                if (!isset($threadViewChecks[$id]))
-                {
-                    $threadViewChecks[$id] = $entity && $entity->canView();
-                }
+                $forumIds[$thread->node_id] = true;
+                $threadsToCheck[$id] = $thread;
             }
         }
 
@@ -137,6 +113,18 @@ class Listener
         if ($toLoad)
         {
             \XF::finder('XF:Forum')->whereIds($toLoad)->fetch();
+        }
+
+        // do thread view checks
+        foreach($threadsToCheck as $id => $thread)
+        {
+            $threadViewChecks[$id] = $thread && $thread->canView();
+        }
+
+        // post checks
+        foreach($postsToCheck as $id => $post)
+        {
+            $postViewChecks[$id] = !empty($threadViewChecks[$post->thread_id]) && ($post->message_state === 'visible' || $post->canView());
         }
     }
 
