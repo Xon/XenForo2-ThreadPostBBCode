@@ -116,13 +116,13 @@ class Listener
         }
 
         // do thread view checks
-        foreach($threadsToCheck as $id => $thread)
+        foreach ($threadsToCheck as $id => $thread)
         {
             $threadViewChecks[$id] = $thread && $thread->canView();
         }
 
         // post checks
-        foreach($postsToCheck as $id => $post)
+        foreach ($postsToCheck as $id => $post)
         {
             $postViewChecks[$id] = !empty($threadViewChecks[$post->thread_id]) && ($post->message_state === 'visible' || $post->canView());
         }

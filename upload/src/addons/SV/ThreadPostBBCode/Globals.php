@@ -7,19 +7,19 @@ namespace SV\ThreadPostBBCode;
  */
 class Globals
 {
-    /** @var bool[]  */
-	public static $threadIds = [];
+    /** @var bool[] */
+    public static $threadIds = [];
 
-	/** @var bool[]  */
-	public static $postIds = [];
+    /** @var bool[] */
+    public static $postIds = [];
 
-	/** @var \XF\Mvc\Router */
-	public static $router;
+    /** @var \XF\Mvc\Router */
+    public static $router;
 
     /**
      * php-pm support, ensure globals are reset and the end of a request
      */
-	public static function reset()
+    public static function reset()
     {
         Globals::$threadIds = [];
         Globals::$postIds = [];
