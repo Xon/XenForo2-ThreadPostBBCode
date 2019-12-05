@@ -210,6 +210,6 @@ class Listener
         $classAttr = $linkInfo['class'] ? "class=\"$linkInfo[class]\"" : '';
         $targetAttr = $linkInfo['target'] ? "target=\"$linkInfo[target]\"" : '';
 
-        return '<a href="' . htmlspecialchars($link) . '"' . $targetAttr . $classAttr . '>' . $children . '</a>';
+        return '<a href="' . htmlspecialchars($link) . '" ' . $targetAttr . $classAttr . ' >' . $children . '</a>';
     }
 }

@@ -16,7 +16,6 @@ class RuleSet extends XFCP_RuleSet
 
     public function validateTag($tag, $option = null, &$parsingModifiers = [], array $tagStack = [])
     {
-        /** @noinspection PhpMethodParametersCountMismatchInspection */
         $validTag = parent::validateTag($tag, $option, $parsingModifiers, $tagStack);
 
         if ($validTag)
