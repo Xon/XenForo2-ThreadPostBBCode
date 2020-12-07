@@ -141,7 +141,7 @@ class Listener
         $tagName = $tag['tag'];
         if ($tagName === 'thread')
         {
-            if (empty($renderer->{'svThreadViewCheck'}))
+            if (empty($renderer->{'svThreadViewCheck'}[$id]))
             {
                 $link = Globals::$router->buildLink('canonical:threads', ['thread_id' => $id]);
             }
@@ -161,7 +161,7 @@ class Listener
         }
         else if ($tagName === 'post')
         {
-            if (empty($renderer->{'svPostViewCheck'}))
+            if (empty($renderer->{'svPostViewCheck'}[$id]))
             {
                 $link = Globals::$router->buildLink('canonical:posts', ['post_id' => $id]);
             }
