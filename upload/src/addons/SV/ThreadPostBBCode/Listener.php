@@ -36,6 +36,7 @@ class Listener
         }
         $postViewChecks = &$renderer->{'svPostViewCheck'};
 
+        $threadsToCheck = [];
         $postsToCheck = [];
         $em = \XF::em();
         $toLoad = [];
@@ -84,7 +85,6 @@ class Listener
             }
         }
 
-        $threadsToCheck = [];
         Globals::$threadIds = [];
         if ($toLoad)
         {
