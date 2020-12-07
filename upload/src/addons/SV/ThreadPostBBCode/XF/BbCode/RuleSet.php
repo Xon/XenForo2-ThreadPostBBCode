@@ -14,6 +14,7 @@ class RuleSet extends XFCP_RuleSet
         });
     }
 
+    /** @noinspection PhpMissingReturnTypeInspection */
     public function validateTag($tag, $option = null, &$parsingModifiers = [], array $tagStack = [])
     {
         $validTag = parent::validateTag($tag, $option, $parsingModifiers, $tagStack);
@@ -27,23 +28,19 @@ class RuleSet extends XFCP_RuleSet
                     if ($option)
                     {
                         Globals::$threadIds[$option] = true;
+                        break;
                     }
-                    else
-                    {
-                        return false;
-                    }
-                    break;
+
+                    return false;
                 case 'post':
                     $option = (int)$option;
                     if ($option)
                     {
                         Globals::$postIds[$option] = true;
+                        break;
                     }
-                    else
-                    {
-                        return false;
-                    }
-                    break;
+
+                    return false;
             }
         }
 

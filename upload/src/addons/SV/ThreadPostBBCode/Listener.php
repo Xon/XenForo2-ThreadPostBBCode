@@ -128,7 +128,7 @@ class Listener
         }
     }
 
-    public static function renderBbCode($tagChildren, $tagOption, $tag, array $options, AbstractRenderer $renderer)
+    public static function renderBbCode($tagChildren, $tagOption, $tag, array $options, AbstractRenderer $renderer): string
     {
         self::loadData($renderer);
 

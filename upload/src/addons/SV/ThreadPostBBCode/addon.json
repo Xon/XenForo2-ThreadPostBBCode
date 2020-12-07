@@ -1,7 +1,7 @@
 {
     "legacy_addon_id": "SV_ThreadPostBBCode",
     "title": "BB Code: Thread and Post",
-    "description": "Bbcodes to generate Friendly URLs to threads or posts from the ID",
+    "description": "Bb-codes to generate Friendly URLs to threads or posts from the ID",
     "version_string": "2.2.0",
     "version_id": 2020000,
     "dev": "Xon",
@@ -15,8 +15,8 @@
             "XenForo 2.1.0+"
         ],
         "php": [
-            "5.6.0",
-            "PHP 5.6.0+"
+            "7.0.0",
+            "PHP 7.0.0+"
         ]
     },
     "icon": "fa-code"
