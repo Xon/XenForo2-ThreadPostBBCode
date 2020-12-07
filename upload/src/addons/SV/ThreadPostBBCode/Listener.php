@@ -45,8 +45,7 @@ class Listener
             $post = $em->findCached('XF:Post', $id);
             if ($post)
             {
-                $threadId = $post->thread_id;
-                Globals::$threadIds[$threadId] = true;
+                Globals::$threadIds[$post->thread_id] = true;
                 $postsToCheck[$id] = $post;
             }
             else
@@ -61,8 +60,7 @@ class Listener
             $entities = \XF::finder('XF:Post')->whereIds($toLoad)->fetch();
             foreach ($entities as $id => $post)
             {
-                $threadId = $post->thread_id;
-                Globals::$threadIds[$threadId] = true;
+                Globals::$threadIds[$post->thread_id] = true;
                 $postsToCheck[$id] = $post;
             }
         }
@@ -98,7 +96,6 @@ class Listener
                 $threadsToCheck[$id] = $thread;
             }
         }
-
 
         $em = \XF::em();
         $toLoad = [];
@@ -141,7 +138,8 @@ class Listener
         $tagName = $tag['tag'];
         if ($tagName === 'thread')
         {
-            if (empty($renderer->{'svThreadViewCheck'}[$id]))
+            $lookup = $renderer->{'svThreadViewCheck'} ?? [];
+            if (empty($lookup[$id]))
             {
                 $link = Globals::$router->buildLink('canonical:threads', ['thread_id' => $id]);
             }
@@ -161,7 +159,8 @@ class Listener
         }
         else if ($tagName === 'post')
         {
-            if (empty($renderer->{'svPostViewCheck'}[$id]))
+            $lookup = $renderer->{'svPostViewCheck'} ?? [];
+            if (empty($lookup[$id]))
             {
                 $link = Globals::$router->buildLink('canonical:posts', ['post_id' => $id]);
             }
