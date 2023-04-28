@@ -23,7 +23,6 @@ abstract class Listener
             Globals::$router = \XF::app()->router('public');
         }
 
-        unset(Globals::$threadIds[0], Globals::$postIds[0]);
         if (count(Globals::$threadIds) === 0 && count(Globals::$postIds) === 0)
         {
             return;

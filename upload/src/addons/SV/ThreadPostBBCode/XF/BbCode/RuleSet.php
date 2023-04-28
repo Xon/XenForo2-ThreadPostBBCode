@@ -1,8 +1,12 @@
 <?php
+/**
+ * @noinspection PhpMissingReturnTypeInspection
+ */
 
 namespace SV\ThreadPostBBCode\XF\BbCode;
 
 use SV\ThreadPostBBCode\Globals;
+use SV\ThreadPostBBCode\Listener;
 
 class RuleSet extends XFCP_RuleSet
 {
@@ -14,25 +18,34 @@ class RuleSet extends XFCP_RuleSet
         });
     }
 
-    /** @noinspection PhpMissingReturnTypeInspection */
-    public function validateTag($tag, $option = null, &$parsingModifiers = [], array $tagStack = [])
+    public function getCustomTagConfig(array $tag)
     {
-        $validTag = parent::validateTag($tag, $option, $parsingModifiers, $tagStack);
+        $output = parent::getCustomTagConfig($tag);
 
-        if ($validTag)
+        if (($tag['callback_class'] ?? '') === Listener::class && ($tag['callback_method'] ?? '') === 'renderBbCode')
         {
-            if ($tag === 'thread')
-            {
-                $option = (int)$option;
-                Globals::$threadIds[$option] = true;
-            }
-            else if ($tag === 'post')
-            {
-                $option = (int)$option;
-                Globals::$postIds[$option] = true;
-            }
+            $output['parseValidate'] = [$this, 'parseSvBbCodeThreadPost'];
         }
 
-        return $validTag;
+        return $output;
+    }
+
+    public function parseSvBbCodeThreadPost($tag, $option)
+    {
+        $id = (int)$option;
+        if ($id === 0)
+        {
+            return false;
+        }
+
+        if ($tag === 'thread')
+        {
+            Globals::$threadIds[$id] = true;
+        }
+        else
+        {
+            Globals::$postIds[$id] = true;
+        }
+        return true;
     }
 }
