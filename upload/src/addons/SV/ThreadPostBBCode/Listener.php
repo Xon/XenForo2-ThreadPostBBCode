@@ -16,7 +16,7 @@ abstract class Listener
      */
     private function __construct() {}
 
-    protected static function loadData(AbstractRenderer $renderer): void
+    protected static function loadData(): void
     {
         if (Globals::$router === null)
         {
@@ -32,16 +32,8 @@ abstract class Listener
             Globals::reset();
         });
 
-        if (!isset($renderer->{'svThreadViewCheck'}))
-        {
-            $renderer->{'svThreadViewCheck'} = [];
-        }
-        $threadViewChecks = &$renderer->{'svThreadViewCheck'};
-        if (!isset($renderer->{'svPostViewCheck'}))
-        {
-            $renderer->{'svPostViewCheck'} = [];
-        }
-        $postViewChecks = &$renderer->{'svPostViewCheck'};
+        $threadViewChecks = &Globals::$threadViewChecks;
+        $postViewChecks = &Globals::$postViewChecks;
 
         $threadsToCheck = [];
         $postsToCheck = [];
@@ -134,7 +126,7 @@ abstract class Listener
 
     public static function renderBbCode($tagChildren, string $tagOption, array $tag, array $options, AbstractRenderer $renderer): string
     {
-        self::loadData($renderer);
+        self::loadData();
 
         $id = (int)$tagOption;
         if ($id === 0)
@@ -145,8 +137,7 @@ abstract class Listener
         $tagName = $tag['tag'];
         if ($tagName === 'thread')
         {
-            $lookup = $renderer->{'svThreadViewCheck'} ?? [];
-            if (empty($lookup[$id]))
+            if (!(Globals::$threadViewChecks[$id] ?? false))
             {
                 $link = Globals::$router->buildLink('canonical:threads', ['thread_id' => $id]);
             }
@@ -166,8 +157,7 @@ abstract class Listener
         }
         else if ($tagName === 'post')
         {
-            $lookup = $renderer->{'svPostViewCheck'} ?? [];
-            if (empty($lookup[$id]))
+            if (!(Globals::$postViewChecks[$id] ?? false))
             {
                 $link = Globals::$router->buildLink('canonical:posts', ['post_id' => $id]);
             }

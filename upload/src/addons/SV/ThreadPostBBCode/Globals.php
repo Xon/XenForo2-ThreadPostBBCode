@@ -16,6 +16,11 @@ abstract class Globals
     /** @var \XF\Mvc\Router */
     public static $router;
 
+    /** @var array<int, bool> */
+    public static $threadViewChecks;
+    /** @var array<int, bool> */
+    public static $postViewChecks;
+
     /**
      * php-pm support, ensure globals are reset and the end of a request
      */
@@ -24,6 +29,8 @@ abstract class Globals
         Globals::$threadIds = [];
         Globals::$postIds = [];
         Globals::$router = null;
+        Globals::$threadViewChecks = [];
+        Globals::$postViewChecks = [];
     }
 
     /**
