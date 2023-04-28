@@ -21,26 +21,15 @@ class RuleSet extends XFCP_RuleSet
 
         if ($validTag)
         {
-            switch ($tag)
+            if ($tag === 'thread')
             {
-                case 'thread':
-                    $option = (int)$option;
-                    if ($option !== 0)
-                    {
-                        Globals::$threadIds[$option] = true;
-                        break;
-                    }
-
-                    return false;
-                case 'post':
-                    $option = (int)$option;
-                    if ($option !== 0)
-                    {
-                        Globals::$postIds[$option] = true;
-                        break;
-                    }
-
-                    return false;
+                $option = (int)$option;
+                Globals::$threadIds[$option] = true;
+            }
+            else if ($tag === 'post')
+            {
+                $option = (int)$option;
+                Globals::$postIds[$option] = true;
             }
         }
 
