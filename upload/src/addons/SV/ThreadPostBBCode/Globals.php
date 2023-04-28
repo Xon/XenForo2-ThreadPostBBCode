@@ -5,7 +5,7 @@ namespace SV\ThreadPostBBCode;
 /**
  * Add-on globals.
  */
-class Globals
+abstract class Globals
 {
     /** @var bool[] */
     public static $threadIds = [];
@@ -19,7 +19,7 @@ class Globals
     /**
      * php-pm support, ensure globals are reset and the end of a request
      */
-    public static function reset()
+    public static function reset(): void
     {
         Globals::$threadIds = [];
         Globals::$postIds = [];
@@ -29,7 +29,5 @@ class Globals
     /**
      * Private constructor, use statically.
      */
-    private function __construct()
-    {
-    }
+    private function __construct() {}
 }

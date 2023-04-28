@@ -6,17 +6,24 @@ use XF\BbCode\Renderer\AbstractRenderer;
 use XF\Entity\Forum;
 use XF\Entity\Post;
 use XF\Entity\Thread;
+use function count;
+use function floor;
 
-class Listener
+abstract class Listener
 {
-    protected static function loadData(AbstractRenderer $renderer)
+    /**
+     * Private constructor, use statically.
+     */
+    private function __construct() {}
+
+    protected static function loadData(AbstractRenderer $renderer): void
     {
         if (Globals::$router === null)
         {
             Globals::$router = \XF::app()->router('public');
         }
 
-        if (!Globals::$threadIds && !Globals::$postIds)
+        if (count(Globals::$threadIds) === 0 && count(Globals::$postIds) === 0)
         {
             return;
         }
@@ -125,12 +132,12 @@ class Listener
         }
     }
 
-    public static function renderBbCode($tagChildren, $tagOption, $tag, array $options, AbstractRenderer $renderer): string
+    public static function renderBbCode($tagChildren, string $tagOption, array $tag, array $options, AbstractRenderer $renderer): string
     {
         self::loadData($renderer);
 
-        $id = intval($tagOption);
-        if (!$id)
+        $id = (int)$tagOption;
+        if ($id === 0)
         {
             return $renderer->renderUnparsedTag($tag, $options);
         }

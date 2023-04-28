@@ -25,7 +25,7 @@ class RuleSet extends XFCP_RuleSet
             {
                 case 'thread':
                     $option = (int)$option;
-                    if ($option)
+                    if ($option !== 0)
                     {
                         Globals::$threadIds[$option] = true;
                         break;
@@ -34,7 +34,7 @@ class RuleSet extends XFCP_RuleSet
                     return false;
                 case 'post':
                     $option = (int)$option;
-                    if ($option)
+                    if ($option !== 0)
                     {
                         Globals::$postIds[$option] = true;
                         break;
