@@ -2,6 +2,8 @@
 
 namespace SV\ThreadPostBBCode;
 
+use XF\Mvc\Router;
+
 /**
  * Add-on globals.
  */
@@ -13,7 +15,7 @@ abstract class Globals
     /** @var bool[] */
     public static $postIds = [];
 
-    /** @var \XF\Mvc\Router */
+    /** @var Router */
     public static $router;
 
     /** @var array<int, bool> */

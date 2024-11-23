@@ -2,12 +2,16 @@
 
 namespace SV\ThreadPostBBCode;
 
+use SV\StandardLib\Helper;
 use XF\BbCode\Renderer\AbstractRenderer;
-use XF\Entity\Forum;
-use XF\Entity\Post;
-use XF\Entity\Thread;
+use XF\BbCode\Renderer\EmailHtml as EmailHtmlRenderer;
+use XF\BbCode\Renderer\SimpleHtml as SimpleHtmlRenderer;
+use XF\Entity\Forum as ForumEntity;
+use XF\Entity\Post as PostEntity;
+use XF\Entity\Thread as ThreadEntity;
 use function count;
 use function floor;
+use function htmlspecialchars;
 
 abstract class Listener
 {
@@ -37,13 +41,11 @@ abstract class Listener
 
         $threadsToCheck = [];
         $postsToCheck = [];
-        $em = \XF::em();
         $toLoad = [];
         foreach (Globals::$postIds as $id => $null)
         {
-            /** @var Post $post */
-            $post = $em->findCached('XF:Post', $id);
-            if ($post)
+            $post = Helper::findCached(PostEntity::class, $id);
+            if ($post !== null)
             {
                 Globals::$threadIds[$post->thread_id] = true;
                 $postsToCheck[$id] = $post;
@@ -56,8 +58,11 @@ abstract class Listener
         Globals::$postIds = [];
         if ($toLoad)
         {
-            /** @var Post[] $entities */
-            $entities = \XF::finder('XF:Post')->whereIds($toLoad)->fetch();
+            $entities = Helper::findByIds(PostEntity::class, $toLoad);
+            /**
+             * @var int $id
+             * @var PostEntity $post
+             */
             foreach ($entities as $id => $post)
             {
                 Globals::$threadIds[$post->thread_id] = true;
@@ -66,14 +71,11 @@ abstract class Listener
         }
 
         $forumIds = [];
-
-        $em = \XF::em();
         $toLoad = [];
         foreach (Globals::$threadIds as $id => $null)
         {
-            /** @var Thread $thread */
-            $thread = $em->findCached('XF:Thread', $id);
-            if ($thread)
+            $thread = Helper::findCached(ThreadEntity::class, $id);
+            if ($thread !== null)
             {
                 $forumIds[$thread->node_id] = true;
                 $threadsToCheck[$id] = $thread;
@@ -87,8 +89,11 @@ abstract class Listener
         Globals::$threadIds = [];
         if ($toLoad)
         {
-            /** @var Thread[] $entities */
-            $entities = \XF::finder('XF:Thread')->whereIds($toLoad)->fetch();
+            $entities = Helper::findByIds(ThreadEntity::class, $toLoad);
+            /**
+             * @var int $id
+             * @var ThreadEntity $thread
+             */
             foreach ($entities as $id => $thread)
             {
                 $forumIds[$thread->node_id] = true;
@@ -96,19 +101,18 @@ abstract class Listener
             }
         }
 
-        $em = \XF::em();
         $toLoad = [];
         foreach ($forumIds as $id => $null)
         {
-            /** @var Forum $forum */
-            if (!$em->findCached('XF:Forum', $id))
+            $forum = Helper::findCached(ForumEntity::class, $id);
+            if ($forum !== null)
             {
                 $toLoad[] = $id;
             }
         }
         if ($toLoad)
         {
-            \XF::finder('XF:Forum')->whereIds($toLoad)->fetch();
+            Helper::findByIds(ForumEntity::class, $toLoad);
         }
 
         // do thread view checks
@@ -143,9 +147,8 @@ abstract class Listener
             }
             else
             {
-                /** @var Thread $thread */
-                $thread = \XF::em()->findCached('XF:Thread', $id);
-                if (!$thread)
+                $thread = Helper::findCached(ThreadEntity::class, $id);
+                if ($thread === null)
                 {
                     $link = Globals::$router->buildLink('canonical:threads', ['thread_id' => $id]);
                 }
@@ -163,15 +166,15 @@ abstract class Listener
             }
             else
             {
-                /** @var Post $post */
-                $post = \XF::em()->findCached('XF:Post', $id);
-                if (!$post)
+                $post = Helper::findCached(PostEntity::class, $id);
+                if ($post === null)
                 {
                     $link = Globals::$router->buildLink('canonical:posts', ['post_id' => $id]);
                 }
                 else
                 {
-                    if ($thread = $post->Thread)
+                    $thread = $post->Thread;
+                    if ($thread !== null)
                     {
                         $page = floor($post->position / \XF::options()->messagesPerPage) + 1;
 
@@ -196,15 +199,15 @@ abstract class Listener
             $children = $link;
         }
 
-        if ($renderer instanceof \XF\BbCode\Renderer\SimpleHtml || $renderer instanceof \XF\BbCode\Renderer\EmailHtml)
+        if ($renderer instanceof SimpleHtmlRenderer || $renderer instanceof EmailHtmlRenderer)
         {
             return '<a href="' . htmlspecialchars($link) . '">' . $children . '</a>';
         }
 
         $linkInfo = \XF::app()->stringFormatter()->getLinkClassTarget($link);
 
-        $classAttr = $linkInfo['class'] ? "class=\"$linkInfo[class]\"" : '';
-        $targetAttr = $linkInfo['target'] ? "target=\"$linkInfo[target]\"" : '';
+        $classAttr = $linkInfo['class'] ? 'class="' . $linkInfo['class'] . '"' : '';
+        $targetAttr = $linkInfo['target'] ? 'target="' . $linkInfo['target'] . '"' : '';
 
         return '<a href="' . htmlspecialchars($link) . '" ' . $targetAttr . $classAttr . ' >' . $children . '</a>';
     }
